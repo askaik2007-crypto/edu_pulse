@@ -20,9 +20,11 @@ class RequestLoggerMiddleware
 
         // تسجيل الطلب في ملفات الـ Log
         Log::info('Incoming HTTP Request', [
-            'method' => $request->method(),
-            'url' => $request->fullUrl(),
-            'execution_time_ms' => $executionTime
+            'method'            => $request->method(),
+            'url'               => $request->fullUrl(),
+            'execution_time_ms' => $executionTime . ' ms',
+            'status_code'        => $response->getStatusCode(),
+            'ip'                => $request->ip(),
         ]);
 
         return $response;
