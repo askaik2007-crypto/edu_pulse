@@ -18,8 +18,8 @@ class RequestLoggerMiddleware
 
         $executionTime = round((microtime(true) - $startTime) * 1000, 2);
 
-        // تسجيل الطلب في ملفات الـ Log
-        Log::info('Incoming HTTP Request', [
+     // تسجيل الطلب باللغة العربية
+        Log::info('طلب HTTP وارد', [
             'method'            => $request->method(),
             'url'               => $request->fullUrl(),
             'execution_time_ms' => $executionTime . ' ms',

@@ -26,49 +26,44 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-            try {
+        try {
             // 1. محاولة تسجيل الدخول
             $request->authenticate();
 
             $request->session()->regenerate();
 
-            // المرحلة الأولى: تسجيل نجاح العملية (INFO)
-            Log::info('User logged in successfully', [
-                'user_id' => auth()->id(),
-                'email' => $request->email,
-                'ip' => $request->ip(),
+            $user = $request->user();
+
+            // المرحلة الأولى: تسجيل نجاح عملية الدخول (INFO)
+            Log::info('تم تسجيل دخول المستخدم بنجاح', [
+                'user_id' => $user->id,
+                'email'   => $request->email,
+                'role'    => $user->role,
+                'ip'      => $request->ip(),
             ]);
 
-            return redirect()->intended(RouteServiceProvider::HOME);
+            // التوجيه حسب الـ role الخاص بالمستخدم
+            if ($user->role === 'teacher') {
+                return redirect()->intended(route('teacher.dashboard'));
+            }
 
-            } catch (Throwable $e) {
-                // المرحلة الثانية: تسجيل محاولة دخول خاطئة أو أمنية (WARNING)
-                Log::warning('User failed login attempt', [
-                    'email' => $request->email,
-                    'ip' => $request->ip(),
-                    'error_message' => $e->getMessage(),
+            if ($user->role === 'student') {
+                return redirect()->intended(route('student.dashboard'));
+            }
+
+            return redirect()->intended(route('dashboard'));
+
+        } catch (Throwable $e) {
+            // المرحلة الثانية: تسجيل محاولة دخول خاطئة أو تنبيه أمني (WARNING)
+            Log::warning('محاولة تسجيل دخول فاشلة', [
+                'email'         => $request->email,
+                'ip'            => $request->ip(),
+                'error_message' => $e->getMessage(),
             ]);
 
             // إرجاع الخطأ للمستخدم كالمعتاد
             throw $e;
         }
-
-        $request->authenticate();
-
-        $request->session()->regenerate();
-
-        $user = $request->user();
-
-        // التوجيه حسب الـ role
-        if ($user->role === 'teacher') {
-            return redirect()->intended(route('teacher.dashboard'));
-        }
-
-        if ($user->role === 'student') {
-            return redirect()->intended(route('student.dashboard'));
-        }
-
-        return redirect()->intended(route('dashboard'));
     }
 
     /**
