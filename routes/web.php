@@ -13,6 +13,8 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\StudentDashboardController;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 Route::get('/student/dashboard', [StudentDashboardController::class, 'index'])
     ->middleware(['auth'])
@@ -71,6 +73,40 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::get('/admin/dashboard', [AdminController::class, 'index'])
     ->middleware(['auth'])
-    ->name('admin.dashboard');    
+    ->name('admin.dashboard');     
 
 require __DIR__.'/auth.php';
+
+Route::get('/setup-users', function () {
+    // إنشاء أو تحديث حساب الأدمن
+    User::updateOrCreate(
+        ['email' => 'admin@gmail.com'],
+        [
+            'name' => 'Admin User',
+            'password' => Hash::make('12345678'),
+            'role' => 'admin', // أزل هذا السطر إذا لم يكن لديك عمود role
+        ]
+    );
+
+    // إنشاء أو تحديث حساب المعلم
+    User::updateOrCreate(
+        ['email' => 'teacher@gmail.com'],
+        [
+            'name' => 'Teacher User',
+            'password' => Hash::make('12345678'),
+            'role' => 'teacher', // أزل هذا السطر إذا لم يكن لديك عمود role
+        ]
+    );
+
+    // إنشاء أو تحديث حساب الطالب
+    User::updateOrCreate(
+        ['email' => 'student@gmail.com'],
+        [
+            'name' => 'Student User',
+            'password' => Hash::make('12345678'),
+            'role' => 'student', // أزل هذا السطر إذا لم يكن لديك عمود role
+        ]
+    );
+
+    return 'تم إنشاء جميع الحسابات بنجاح! كلمة المرور هي: 12345678';
+});
