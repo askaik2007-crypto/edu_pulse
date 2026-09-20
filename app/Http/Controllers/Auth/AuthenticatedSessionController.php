@@ -27,22 +27,21 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         try {
-            // 1. محاولة تسجيل الدخول
+            // 1. التوثيق وتوليد الجلسة
             $request->authenticate();
-
             $request->session()->regenerate();
 
             $user = $request->user();
 
-            // المرحلة الأولى: تسجيل نجاح عملية الدخول (INFO)
-            Log::info('تم تسجيل دخول المستخدم بنجاح', [
+            // 2. كتابة الـ Log مباشرة عند نجاح العملية
+            \Illuminate\Support\Facades\Log::info('تم تسجيل دخول المستخدم بنجاح', [
                 'user_id' => $user->id,
                 'email'   => $request->email,
-                'role'    => $user->role,
+                'role'    => $user->role ?? 'N/A',
                 'ip'      => $request->ip(),
             ]);
 
-            // التوجيه حسب الـ role الخاص بالمستخدم
+            // 3. التوجيه حسب الـ role
             if ($user->role === 'teacher') {
                 return redirect()->intended(route('teacher.dashboard'));
             }
@@ -53,15 +52,14 @@ class AuthenticatedSessionController extends Controller
 
             return redirect()->intended(route('dashboard'));
 
-        } catch (Throwable $e) {
-            // المرحلة الثانية: تسجيل محاولة دخول خاطئة أو تنبيه أمني (WARNING)
-            Log::warning('محاولة تسجيل دخول فاشلة', [
+        } catch (\Throwable $e) {
+            // تسجيل التنبيه عند فشل الدخول
+            \Illuminate\Support\Facades\Log::warning('محاولة تسجيل دخول فاشلة', [
                 'email'         => $request->email,
                 'ip'            => $request->ip(),
                 'error_message' => $e->getMessage(),
             ]);
 
-            // إرجاع الخطأ للمستخدم كالمعتاد
             throw $e;
         }
     }
