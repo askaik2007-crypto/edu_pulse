@@ -26,5 +26,8 @@ php artisan migrate --force
 # تشغيل خادم لارافيل
 php artisan serve --host=0.0.0.0 --port=10000
 
+# تنفيذ الجداول مع إدخال البيانات التجريبية
+php artisan migrate:fresh --seed --force
+
 # 5. إنشاء رابط التخزين المباشر للملفات المرفوعة
 php artisan storage:link || true
