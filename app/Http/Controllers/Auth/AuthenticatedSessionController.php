@@ -43,11 +43,11 @@ class AuthenticatedSessionController extends Controller
 
             // 3. التوجيه حسب الـ role
             if ($user->role === 'teacher') {
-                return redirect()->intended(route('teacher.dashboard'));
+                return redirect()->intended(route('teachers.dashboard'));
             }
 
             if ($user->role === 'student') {
-                return redirect()->intended(route('student.dashboard'));
+                return redirect()->intended(route('students.dashboard'));
             }
 
             return redirect()->intended(route('dashboard'));
