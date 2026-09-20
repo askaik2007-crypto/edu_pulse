@@ -101,11 +101,11 @@ class AuthController extends Controller
             }
 
             if ($user->role === 'teacher') {
-                return redirect()->route('teacher.dashboard');
+                return redirect()->route('teachers.dashboard');
             }
 
             if ($user->role === 'student') {
-                return redirect()->route('student.dashboard');
+                return redirect()->route('students.dashboard');
             }
 
             return redirect()->route('dashboard');
