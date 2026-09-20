@@ -96,19 +96,21 @@ class AuthController extends Controller
             ]);
 
             // 6. التوجيه بناءً على رتبة المستخدم (Role)
-            if ($user->role === 'admin') {
-                return redirect()->route('admin.dashboard');
+            $userRole = strtolower(trim($user->role ?? ''));
+
+            if ($userRole === 'admin') {
+                return redirect()->to('/admin/dashboard');
             }
 
-            if ($user->role === 'teacher') {
-                return redirect()->route('teachers.dashboard');
+            if ($userRole === 'teacher') {
+                return redirect()->to('/teacher/dashboard');
             }
 
-            if ($user->role === 'student') {
-                return redirect()->route('students.dashboard');
+            if ($userRole === 'student') {
+                return redirect()->to('/student/dashboard');
             }
 
-            return redirect()->route('dashboard');
+            return redirect()->to('/dashboard');
 
         } catch (ValidationException $e) {
             throw $e;
