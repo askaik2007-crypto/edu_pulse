@@ -23,11 +23,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Student::observe(StudentObserver::class);
-        if (config('app.env') === 'production' || request()->header('X-Forwarded-Proto') === 'https') {
         URL::forceScheme('https');
     }
-    }
-
-
-
 }
