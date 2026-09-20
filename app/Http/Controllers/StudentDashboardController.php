@@ -13,4 +13,8 @@ class StudentDashboardController extends Controller
         $student = Auth::user();
         return view('students.dashboard', compact('student'));
     }
+    public function dashboard()
+    {
+        return view('teachers.dashboard'); // بصيغة الجمع teachers
+    }
 }

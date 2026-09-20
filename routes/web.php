@@ -16,7 +16,7 @@ use App\Http\Controllers\StudentDashboardController;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
-// توجيه الزائر تلقائياً لوحة التحكم أو صفحة تسجيل الدخول
+// توجيه الزائر تلقائياً لصفحة تسجيل الدخول
 Route::get('/', function () {
     return redirect()->route('login');
 });
@@ -26,19 +26,19 @@ Route::get('/', function () {
 // ==========================================
 
 // 1. لوحة تحكم الأدمن
-Route::get('/admin/dashboard', [AdminController::class, 'index'])
-    ->middleware(['auth'])
-    ->name('admin.dashboard');
+Route::get('/admin/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth'])->name('admin.dashboard');
 
-// 2. لوحة تحكم المعلم
-Route::get('/teacher/dashboard', [TeacherController::class, 'dashboard'])
-    ->middleware(['auth'])
-    ->name('teacher.dashboard');
+// 2. لوحة تحكم المعلم (استدعاء مجلد teachers بالجمع)
+Route::get('/teacher/dashboard', function () {
+    return view('teachers.dashboard');
+})->middleware(['auth'])->name('teacher.dashboard');
 
-// 3. لوحة تحكم الطالب
-Route::get('/student/dashboard', [StudentDashboardController::class, 'index'])
-    ->middleware(['auth'])
-    ->name('student.dashboard');
+// 3. لوحة تحكم الطالب (استدعاء مجلد students بالجمع)
+Route::get('/student/dashboard', function () {
+    return view('students.dashboard');
+})->middleware(['auth'])->name('student.dashboard');
 
 // 4. لوحة التحكم العامة
 Route::get('/dashboard', function () {
