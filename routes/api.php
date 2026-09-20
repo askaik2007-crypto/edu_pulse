@@ -12,18 +12,18 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AuthController;
 
-Route::apiResource('categories', CategoryController::class);
-Route::apiResource('courses', CourseController::class);
-Route::apiResource('teachers', TeacherController::class);
-Route::apiResource('students', StudentController::class);
-Route::apiResource('class-rooms', ClassRoomController::class);
-Route::apiResource('course-classes', CourseClassController::class);
-Route::apiResource('enrollments', EnrollmentController::class);
-
-// تم تغيير الاسم هنا لمنع التعارض مع مسارات صفحات الـ Web
-Route::apiResource('api-attendances', AttendanceController::class);
-
-Route::apiResource('payments', PaymentController::class);
+// إضافة name('api.') تمنع التعارض نهائياً مع مسارات الـ Web
+Route::name('api.')->group(function () {
+    Route::apiResource('categories', CategoryController::class);
+    Route::apiResource('courses', CourseController::class);
+    Route::apiResource('teachers', TeacherController::class);
+    Route::apiResource('students', StudentController::class);
+    Route::apiResource('class-rooms', ClassRoomController::class);
+    Route::apiResource('course-classes', CourseClassController::class);
+    Route::apiResource('enrollments', EnrollmentController::class);
+    Route::apiResource('attendances', AttendanceController::class);
+    Route::apiResource('payments', PaymentController::class);
+});
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
