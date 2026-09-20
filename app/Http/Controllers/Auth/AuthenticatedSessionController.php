@@ -24,6 +24,9 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
+    /**
+ * Handle an incoming authentication request.
+ */
     public function store(LoginRequest $request): RedirectResponse
     {
         try {
@@ -33,28 +36,34 @@ class AuthenticatedSessionController extends Controller
 
             $user = $request->user();
 
-            // 2. كتابة الـ Log مباشرة عند نجاح العملية
-            \Illuminate\Support\Facades\Log::info('تم تسجيل دخول المستخدم بنجاح', [
+            // 2. كتابة الـ Log مباشرة عند نجاح العملية بالعربي
+            Log::info('تم تسجيل دخول المستخدم بنجاح', [
                 'user_id' => $user->id,
-                'email'   => $request->email,
+                'email'   => $user->email,
                 'role'    => $user->role ?? 'N/A',
                 'ip'      => $request->ip(),
             ]);
 
-            // 3. التوجيه حسب الـ role
-            if ($user->role === 'teacher') {
-                return redirect()->intended(route('teachers.dashboard'));
+            // 3. التنظيف والتوجيه المباشر والدقيق حسب الـ role (مطابق لأسماء الـ Routes في web.php)
+            $role = strtolower(trim($user->role ?? ''));
+
+            if ($role === 'teacher') {
+                return redirect()->route('teacher.dashboard');
             }
 
-            if ($user->role === 'student') {
-                return redirect()->intended(route('students.dashboard'));
+            if ($role === 'student') {
+                return redirect()->route('student.dashboard');
             }
 
-            return redirect()->intended(route('dashboard'));
+            if ($role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
 
-        } catch (\Throwable $e) {
+            return redirect()->route('dashboard');
+
+        } catch (Throwable $e) {
             // تسجيل التنبيه عند فشل الدخول
-            \Illuminate\Support\Facades\Log::warning('محاولة تسجيل دخول فاشلة', [
+            Log::warning('محاولة تسجيل دخول فاشلة', [
                 'email'         => $request->email,
                 'ip'            => $request->ip(),
                 'error_message' => $e->getMessage(),
