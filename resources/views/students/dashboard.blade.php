@@ -5,7 +5,7 @@
         <div class="card border-0 rounded-4 shadow-sm mb-4 text-white p-4" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
-                    <h2 class="fw-bold mb-1">مرحباً بك، {{ $student->name }} 👋</h2>
+                    <h2 class="fw-bold mb-1">مرحباً بك، {{ $student->name ?? auth()->user()->name ?? 'الطالب' }} 👋</h2>
                     <p class="mb-0 text-white-50 fs-6">مرحباً بك في لوحتك الأكاديمية الخاصة بمركز EduPulse</p>
                 </div>
                 <div>
@@ -23,7 +23,7 @@
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
                             <span class="text-secondary small fw-bold d-block mb-1">الدورات المسجل بها</span>
-                            <h3 class="fw-bold mb-0 text-primary">{{ isset($student->registrations) ? $student->registrations->count() : 0 }}</h3>
+                            <h3 class="fw-bold mb-0 text-primary">{{ isset($student) && isset($student->registrations) ? $student->registrations->count() : 0 }}</h3>
                         </div>
                         <div class="rounded-3 bg-primary bg-opacity-10 p-3 text-primary">
                             <i class="fa-solid fa-graduation-cap fs-3"></i>
@@ -83,7 +83,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @if(isset($student->registrations) && $student->registrations->count() > 0)
+                                    @if(isset($student) && isset($student->registrations) && $student->registrations->count() > 0)
                                         @foreach($student->registrations as $registration)
                                             <tr>
                                                 <td class="ps-4 fw-bold text-dark">
@@ -91,10 +91,10 @@
                                                         <span class="p-2 me-2 rounded bg-primary bg-opacity-10 text-primary">
                                                             <i class="fa-solid fa-laptop-code"></i>
                                                         </span>
-                                                        {{ $registration->courseClass->course->name ?? 'دورة تدريبية' }}
+                                                        {{ $registration->courseClass->course->name ?? $registration->course->name ?? 'دورة تدريبية' }}
                                                     </div>
                                                 </td>
-                                                <td class="text-muted">{{ $registration->created_at ? $registration->created_at->format('Y-m-d') : '-' }}</td>
+                                                <td class="text-muted">{{ isset($registration->created_at) ? $registration->created_at->format('Y-m-d') : '-' }}</td>
                                                 <td>
                                                     <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill border border-success">
                                                         <i class="fa-solid fa-check me-1"></i> مسجل
@@ -132,7 +132,7 @@
                             <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 80px; height: 80px;">
                                 <i class="fa-solid fa-user-graduate fs-1"></i>
                             </div>
-                            <h4 class="fw-bold mb-1 text-dark">{{ $student->name }}</h4>
+                            <h4 class="fw-bold mb-1 text-dark">{{ $student->name ?? auth()->user()->name ?? 'غير محدد' }}</h4>
                             <span class="badge bg-info text-dark px-3 py-1 rounded-pill">طالب في المركز</span>
                         </div>
 
@@ -142,7 +142,7 @@
                                 <i class="fa-solid fa-envelope text-primary me-2"></i>
                                 <span class="text-muted small">البريد الإلكتروني:</span>
                             </div>
-                            <div class="fw-bold text-dark text-break me-4">{{ $student->email }}</div>
+                            <div class="fw-bold text-dark text-break me-4">{{ $student->email ?? auth()->user()->email ?? 'غير محدد' }}</div>
                         </div>
 
                         <div class="bg-light p-3 rounded-3 border">
