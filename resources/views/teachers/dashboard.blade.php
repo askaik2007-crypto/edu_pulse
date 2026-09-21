@@ -132,7 +132,7 @@
                 <button type="button" id="sidebarCollapse" class="btn btn-light d-lg-none">
                     <i class="fa-solid fa-bars"></i>
                 </button>
-                <h5 class="fw-bold m-0 text-dark">مرحباً بك، {{ auth()->user()->name ?? 'المدرس' }}</h5>
+                <h5 class="fw-bold m-0 text-dark">مرحباً بك، {{ $teacher->name ?? auth()->user()->name ?? 'المدرس' }}</h5>
             </div>
             
             <div class="d-flex align-items-center gap-3">
@@ -154,7 +154,7 @@
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
                                 <span class="text-muted d-block small mb-1 fw-bold">التخصص الأكاديمي</span>
-                                <h5 class="fw-bold m-0 text-dark">{{ $teacher->specialization }}</h5>
+                                <h5 class="fw-bold m-0 text-dark">{{ $teacher->specialization ?? auth()->user()->specialization ?? 'غير محدد' }}</h5>
                             </div>
                             <div class="stat-icon bg-primary bg-opacity-10 text-primary">
                                 <i class="fa-solid fa-graduation-cap"></i>
@@ -169,7 +169,7 @@
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
                                 <span class="text-muted d-block small mb-1 fw-bold">البريد الإلكتروني</span>
-                                <h6 class="fw-bold m-0 text-dark text-truncate" style="max-width: 200px;">{{ $teacher->email }}</h6>
+                                <h6 class="fw-bold m-0 text-dark text-truncate" style="max-width: 200px;">{{ $teacher->email ?? auth()->user()->email ?? 'غير محدد' }}</h6>
                             </div>
                             <div class="stat-icon bg-success bg-opacity-10 text-success">
                                 <i class="fa-solid fa-envelope"></i>
@@ -184,7 +184,7 @@
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
                                 <span class="text-muted d-block small mb-1 fw-bold">رقم الهاتف</span>
-                                <h5 class="fw-bold m-0 text-dark">{{ $teacher->phone }}</h5>
+                                <h5 class="fw-bold m-0 text-dark">{{ $teacher->phone ?? auth()->user()->phone ?? 'غير محدد' }}</h5>
                             </div>
                             <div class="stat-icon bg-info bg-opacity-10 text-info">
                                 <i class="fa-solid fa-phone"></i>
@@ -217,8 +217,13 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    document.getElementById('sidebarCollapse').addEventListener('click', function () {
-        document.getElementById('sidebar').classList.toggle('active');
+    document.addEventListener('DOMContentLoaded', function () {
+        const sidebarCollapse = document.getElementById('sidebarCollapse');
+        if (sidebarCollapse) {
+            sidebarCollapse.addEventListener('click', function () {
+                document.getElementById('sidebar').classList.toggle('active');
+            });
+        }
     });
 </script>
 </body>
