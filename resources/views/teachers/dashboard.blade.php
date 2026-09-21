@@ -113,7 +113,7 @@
             
             <!-- زر تسجيل الخروج -->
             <li class="nav-item mt-4 px-2">
-                <form action="{{ route('teacher.logout') }}" method="POST" class="m-0">
+                <form action="{{ route('logout') }}" method="POST" class="m-0">
                     @csrf
                     <button type="submit" class="nav-link w-100 d-flex align-items-center border-0 bg-transparent text-danger py-2 px-3 rounded" style="transition: all 0.2s;">
                         <i class="fa-solid fa-right-from-bracket me-2 text-danger" style="width: 24px; text-align: center;"></i>

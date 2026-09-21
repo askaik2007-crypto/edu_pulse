@@ -124,6 +124,8 @@ class TeacherController extends Controller
     // 4. تسجيل خروج المحاضر
     public function logout()
     {
+        Route::post('/teacher/logout', [App\Http\Controllers\TeacherAuthController::class, 'logout'])
+            ->name('teacher.logout');
         session()->forget('teacher_id');
         return redirect()->route('teacher.login');
     }

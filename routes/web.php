@@ -16,40 +16,71 @@ use App\Http\Controllers\StudentDashboardController;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
-// توجيه الزائر تلقائياً لصفحة تسجيل الدخول
+// توجيه الزائر تلقائياً لصفحة الطلاب مباشرة للتجربة بسهولة
 Route::get('/', function () {
-    return redirect()->route('login');
+    return redirect()->route('students.index');
 });
 
 // ==========================================
-// لوحات التحكم الرئيسية بناءً على الـ Roles
+// 1. مسار إعداد المستخدمين وتأكيدهم آلياً
 // ==========================================
+Route::get('/setup-users', function () {
+    User::updateOrCreate(
+        ['email' => 'admin@gmail.com'],
+        [
+            'name' => 'Admin User',
+            'password' => Hash::make('12345678'),
+            'role' => 'admin',
+            'email_verified_at' => now(), // إضافة تاريخ التأكيد لتجنب خطأ verified
+        ]
+    );
 
-// 1. لوحة تحكم الأدمن
+    User::updateOrCreate(
+        ['email' => 'teacher@gmail.com'],
+        [
+            'name' => 'Teacher User',
+            'password' => Hash::make('12345678'),
+            'role' => 'teacher',
+            'email_verified_at' => now(),
+        ]
+    );
+
+    User::updateOrCreate(
+        ['email' => 'student@gmail.com'],
+        [
+            'name' => 'Student User',
+            'password' => Hash::make('12345678'),
+            'role' => 'student',
+            'email_verified_at' => now(),
+        ]
+    );
+
+    return 'تم إنشاء وتأكيد جميع الحسابات بنجاح! كلمة المرور هي: 12345678';
+});
+
+// ==========================================
+// 2. لوحات التحكم الرئيسية
+// ==========================================
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth'])->name('dashboard');
+
 Route::get('/admin/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth'])->name('admin.dashboard');
 
-// 2. لوحة تحكم المعلم (استدعاء مجلد teachers بالجمع)
 Route::get('/teacher/dashboard', function () {
     return view('teachers.dashboard');
 })->middleware(['auth'])->name('teacher.dashboard');
 
-// 3. لوحة تحكم الطالب (استدعاء مجلد students بالجمع)
 Route::get('/student/dashboard', function () {
     return view('students.dashboard');
 })->middleware(['auth'])->name('student.dashboard');
 
-// 4. لوحة التحكم العامة
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-
 // ==========================================
-// مسارات النظام العامة والخاصة بالأدمن (Admin Panel)
+// 3. مسارات النظام المحمية بـ Auth فقط
 // ==========================================
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     
     Route::get('/attendances/report', [AttendanceController::class, 'report'])->name('attendances.report');
 
@@ -58,11 +89,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
-    // مسارات خاصة إضافية
+    // تصدير وطباعة
     Route::get('students/export', [StudentController::class, 'export'])->name('students.export');
     Route::get('payments/{payment}/print', [PaymentController::class, 'print'])->name('payments.print');
 
-    // مسارات النظام الأساسية (Resources)
+    // باقي مسارات النظام
     Route::resource('students', StudentController::class);
     Route::resource('courses', CourseController::class);
     Route::resource('teachers', TeacherController::class);
@@ -73,37 +104,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('attendances', AttendanceController::class);
     Route::resource('payments', PaymentController::class);
 });
+Route::post('/teacher/logout', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])
+    ->name('teacher.logout');
 
 require __DIR__.'/auth.php';
-
-// مسار إعداد المستخدمين الأولي للاختبار
-Route::get('/setup-users', function () {
-    User::updateOrCreate(
-        ['email' => 'admin@gmail.com'],
-        [
-            'name' => 'Admin User',
-            'password' => Hash::make('12345678'),
-            'role' => 'admin',
-        ]
-    );
-
-    User::updateOrCreate(
-        ['email' => 'teacher@gmail.com'],
-        [
-            'name' => 'Teacher User',
-            'password' => Hash::make('12345678'),
-            'role' => 'teacher',
-        ]
-    );
-
-    User::updateOrCreate(
-        ['email' => 'student@gmail.com'],
-        [
-            'name' => 'Student User',
-            'password' => Hash::make('12345678'),
-            'role' => 'student',
-        ]
-    );
-
-    return 'تم إنشاء جميع الحسابات بنجاح! كلمة المرور هي: 12345678';
-});

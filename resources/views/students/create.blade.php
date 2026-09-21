@@ -19,7 +19,6 @@
                 <i class="fa-solid fa-user-plus text-success me-2"></i>إضافة طالب جديد
             </h4>
 
-            <!-- عرض أخطاء الإدخال إن وجدت -->
             @if ($errors->any())
                 <div class="alert alert-danger">
                     <ul class="mb-0">
@@ -30,16 +29,15 @@
                 </div>
             @endif
 
-            <!-- ⚠️ ملاحظة هامة جداً: enctype ضروري جداً لرفع الملفات -->
             <form action="{{ route('students.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="mb-3">
-                    <label class="form-label fw-bold">اسم الطالب</label>
+                    <label class="form-label fw-bold">اسم الطالب <span class="text-danger">*</span></label>
                     <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">البريد الإلكتروني</label>
+                    <label class="form-label fw-bold">البريد الإلكتروني <span class="text-danger">*</span></label>
                     <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
                 </div>
 
@@ -50,21 +48,20 @@
 
                 <div class="mb-3">
                     <label class="form-label fw-bold">تاريخ الميلاد</label>
-                    <input type="date" name="birth_date" class="form-control" value="{{ old('birth_date', '2000-01-01') }}">
+                    <input type="date" name="birth_date" class="form-control" value="{{ old('birth_date') }}">
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">الجنس</label>
+                    <label class="form-label fw-bold">الجنس <span class="text-danger">*</span></label>
                     <select name="gender" class="form-select" required>
                         <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>ذكر</option>
                         <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>أنثى</option>
                     </select>
                 </div>
 
-                <!-- ⚠️ حقل الصورة/الملف باسم image مطابَق للكنترولر -->
                 <div class="mb-4">
                     <label class="form-label fw-bold">صورة أو مرفق الطالب (jpeg, png, pdf)</label>
-                    <input type="file" name="image" class="form-control" accept=".jpeg,.png,.jpg,.pdf" required>
+                    <input type="file" name="image" class="form-control" accept=".jpeg,.png,.jpg,.pdf">
                 </div>
 
                 <div class="d-flex justify-content-between">

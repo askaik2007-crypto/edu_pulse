@@ -9,8 +9,6 @@ class Student extends Model
 {
     use HasFactory;
 
-    use HasFactory;
-
     protected $fillable = [
         'name',
         'email',
@@ -18,6 +16,30 @@ class Student extends Model
         'gender',
         'birth_date',
         'image',
+        'status',
     ];
-    
+
+    /**
+     * علاقة الطالب بالتسجيلات
+     */
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
+    /**
+     * علاقة الطالب بالمدفوعات
+     */
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * علاقة الطالب بسجلات الحضور
+     */
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
 }

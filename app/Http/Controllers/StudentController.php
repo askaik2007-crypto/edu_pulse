@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Models;
+
 namespace App\Http\Controllers;
 
 use App\Models\Student;
@@ -12,7 +14,7 @@ use Throwable;
 class StudentController extends Controller
 {
     /**
-     * تصدير الطلاب إلى ملف Excel حقيقي (XML) يتوزع في أعمدة مستقلة
+     * تصدير الطلاب إلى ملف Excel حقيقي (XML)
      */
     public function export(Request $request)
     {
@@ -28,12 +30,11 @@ class StudentController extends Controller
         ];
 
         $callback = function() use ($students) {
-            echo '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+            echo '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:excel" xmlns="http://www.w3.org/TR/REC-html40">';
             echo '<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style>table { border-collapse: collapse; } th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }</style></head>';
             echo '<body>';
             echo '<table>';
             
-            // صف العناوين
             echo '<thead><tr style="background-color: #f2f2f2; font-weight: bold;">';
             echo '<th>ID</th>';
             echo '<th>اسم الطالب</th>';
@@ -42,7 +43,6 @@ class StudentController extends Controller
             echo '<th>تاريخ التسجيل</th>';
             echo '</tr></thead>';
 
-            // البيانات
             echo '<tbody>';
             foreach ($students as $student) {
                 echo '<tr>';
@@ -67,9 +67,8 @@ class StudentController extends Controller
      */
     public function index()
     {
-        $students = Student::latest()->get();
+        $students = Student::latest()->paginate(10);
         return view('students.index', compact('students'));
-        $student = Auth::user();    
     }
 
     /**
@@ -81,50 +80,38 @@ class StudentController extends Controller
     }
 
     /**
-     * حفظ البيانات عند إضافة طالب جديد (مع الرفع الآمن للملفات)
+     * حفظ البيانات عند إضافة طالب جديد
      */
     public function store(Request $request)
-        {
+    {
+        $request->validate([
+            'name'       => 'required|string|max:255',
+            'email'      => 'required|email|unique:students,email',
+            'phone'      => 'nullable|string|max:20',
+            'birth_date' => 'nullable|date',
+            'gender'     => 'required|in:male,female',
+            'image'      => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+        ]);
 
-    //     dd([
-    //     'all_request' => $request->all(),
-    //     'has_file' => $request->hasFile('image'),
-    //     'file_object' => $request->file('image')
-    // ]); 
-    
-            // 1. التحقق من صحة المدخلات والملف
-            $request->validate([
-                'name'       => 'required|string|max:255',
-                'email'      => 'required|email|unique:students,email',
-                'phone'      => 'nullable|string',
-                'birth_date' => 'nullable|date',
-                'gender'     => 'required|in:male,female',
-                'image'      => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
-            ]);
+        $path = null;
 
-            $path = null;
-
-            // 2. معالجة وحفظ الملف بشكل آمن
-            if ($request->hasFile('image') && $request->file('image')->isValid()) {
-                $file = $request->file('image');
-                $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('uploads/students', $filename, 'public');
-            } else {
-                return back()->withErrors(['image' => 'يجب رفع ملف صحيح أو صورة صالحة.'])->withInput();
-            }
-
-            // 3. حفظ البيانات في قاعدة البيانات
-            Student::create([
-                'name'       => $request->name,
-                'email'      => $request->email,
-                'phone'      => $request->phone,
-                'birth_date' => $request->birth_date,
-                'gender'     => $request->gender,
-                'image'      => $path,
-            ]);
-
-            return redirect()->route('students.index')->with('success', 'تم إضافة الطالب وحفظ الملف بنجاح.');
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            $file = $request->file('image');
+            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('uploads/students', $filename, 'public');
         }
+
+        Student::create([
+            'name'       => $request->name,
+            'email'      => $request->email,
+            'phone'      => $request->phone,
+            'birth_date' => $request->birth_date,
+            'gender'     => $request->gender,
+            'image'      => $path,
+        ]);
+
+        return redirect()->route('students.index')->with('success', 'تم إضافة الطالب وحفظ البيانات بنجاح.');
+    }
 
     /**
      * عرض تفاصيل طالب معين
@@ -143,30 +130,29 @@ class StudentController extends Controller
     }
 
     /**
-     * تحديث بيانات الطالب في قاعدة البيانات (مع التنظيف الآلي للملف القديم)
+     * تحديث بيانات الطالب
      */
     public function update(Request $request, Student $student)
     {
         $request->validate([
             'name'       => 'required|string|max:255',
-            'email'      => 'required|email|unique:students,email,' . $student->getKey(),
+            'email'      => 'required|email|unique:students,email,' . $student->id,
             'phone'      => 'nullable|string|max:20',
             'gender'     => 'nullable|in:male,female',
             'birth_date' => 'nullable|date',
-            'image'      => 'nullable|file|mimes:jpeg,png,pdf|max:2048',
+            'image'      => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
         ]);
 
         try {
-            $path = $student->image; // الاحتفاظ بالصورة القديمة افتراضياً
+            $path = $student->image;
 
             if ($request->hasFile('image')) {
-                // حذف الملف القديم إذا وجد
                 if ($student->image && Storage::disk('public')->exists($student->image)) {
                     Storage::disk('public')->delete($student->image);
                 }
 
                 $file = $request->file('image');
-                $filename = \Illuminate\Support\Str::uuid() . '.' . $file->getClientOriginalExtension();
+                $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
                 $path = $file->storeAs('uploads/students', $filename, 'public');
             }
 
@@ -179,47 +165,34 @@ class StudentController extends Controller
                 'image'      => $path,
             ]);
 
-            Log::info('Student updated successfully', [
-                'student_id' => $student->getKey(),
-                'user_id'    => auth()->id()
-            ]);
+            Log::info('Student updated successfully', ['student_id' => $student->id, 'user_id' => auth()->id()]);
 
             return redirect()->route('students.index')->with('success', 'تم تحديث بيانات الطالب بنجاح!');
 
         } catch (Throwable $e) {
-            Log::error('Failed to update student', [
-                'student_id' => $student->getKey(),
-                'error'      => $e->getMessage(),
-                'user_id'    => auth()->id()
-            ]);
-
+            Log::error('Failed to update student', ['student_id' => $student->id, 'error' => $e->getMessage()]);
             return redirect()->back()->with('error', 'حدث خطأ أثناء تحديث بيانات الطالب')->withInput();
         }
     }
 
     /**
-     * حذف الطالب من قاعدة البيانات
+     * حذف الطالب
      */
     public function destroy(Student $student)
     {
         try {
-            $studentId = $student->getKey();
-            $student->delete(); // الـ Observer سيتكفل بحذف الملف المرفق تلقائياً
+            if ($student->image && Storage::disk('public')->exists($student->image)) {
+                Storage::disk('public')->delete($student->image);
+            }
 
-            Log::info('Student deleted successfully', [
-                'deleted_student_id' => $studentId,
-                'user_id'            => auth()->id()
-            ]);
+            $student->delete();
+
+            Log::info('Student deleted successfully', ['deleted_student_id' => $student->id, 'user_id' => auth()->id()]);
 
             return redirect()->route('students.index')->with('success', 'تم حذف الطالب بنجاح!');
 
         } catch (Throwable $e) {
-            Log::error('Failed to delete student', [
-                'student_id' => $student->getKey(),
-                'error'      => $e->getMessage(),
-                'user_id'    => auth()->id()
-            ]);
-
+            Log::error('Failed to delete student', ['student_id' => $student->id, 'error' => $e->getMessage()]);
             return redirect()->back()->with('error', 'حدث خطأ أثناء حذف الطالب');
         }
     }

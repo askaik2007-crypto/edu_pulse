@@ -11,6 +11,7 @@
         .card-custom { border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         .table th { background-color: #1e293b; color: white; text-align: center; }
         .table td { vertical-align: middle; text-align: center; }
+        .avatar-img { width: 45px; height: 45px; object-fit: cover; border-radius: 50%; border: 2px solid #e2e8f0; }
     </style>
 </head>
 <body class="p-3 p-md-5">
@@ -20,7 +21,6 @@
         <div class="card card-custom p-4 mb-4">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 
-                <!-- العنوان والوصف -->
                 <div>
                     <h2 class="fw-bold m-0 text-dark">
                         إدارة الطلاب <i class="fa-solid fa-user-graduate text-success ms-1"></i>
@@ -28,27 +28,35 @@
                     <small class="text-muted">عرض وتعديل بيانات الطلاب المسجلين والمرفقات</small>
                 </div>
 
-                <!-- الأزرار الأساسية فقط -->
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <a href="{{ route('students.create') }}" class="btn btn-success fw-bold">
                         <i class="fa-solid fa-user-plus me-1"></i> إضافة طالب جديد
                     </a>
-                    <a href="/dashboard" class="btn btn-outline-secondary fw-bold">
+                    <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary fw-bold">
                         <i class="fa-solid fa-gauge me-1"></i> لوحة التحكم
                     </a>
-                    <a href="{{ route('students.export', request()->query()) }}" class="btn btn-success">
-                        <i class="fa-solid fa-file-excel"></i> تصدير إلى Excel
+                    <a href="{{ route('students.export', request()->query()) }}" class="btn btn-outline-success fw-bold">
+                        <i class="fa-solid fa-file-excel me-1"></i> تصدير إلى Excel
                     </a>
                 </div>
 
             </div>
         </div>
 
-        <!-- Notification -->
+        <!-- Alerts -->
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show d-flex align-items-center justify-content-between" role="alert">
                 <div>
                     <i class="fa-solid fa-circle-check me-2"></i> {{ session('success') }}
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center justify-content-between" role="alert">
+                <div>
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i> {{ session('error') }}
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -61,7 +69,7 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>المرفق</th>
+                            <th>المرفق / الصورة</th>
                             <th>اسم الطالب</th>
                             <th>البريد الإلكتروني</th>
                             <th>رقم الهاتف</th>
@@ -75,22 +83,29 @@
                             <tr>
                                 <td class="fw-bold">{{ $loop->iteration }}</td>
                                 
-                                            <!-- عمود المرفق / الصورة الآمنة -->
-                               <td>
-    <!-- @if($student->image)
-        @if(Str::endsWith($student->image, ['.jpg', '.jpeg', '.png'])) -->
-            <!-- عرض الصورة مباشرة -->
-            <img src="{{ asset('storage/' . $student->image) }}" alt="صورة الطالب" width="50" height="50" style="object-fit: cover; border-radius: 50%;">
-        <!-- @else -->
-            <!-- عرض زر ملف الـ PDF -->
-            <!-- <a href="{{ asset('storage/' . $student->image) }}" target="_blank" class="btn btn-sm btn-outline-info">
-                <i class="fa-solid fa-file-pdf"></i> عرض الملف
-            </a>  
-         @endif -->
-    <!-- @else -->
-        <span class="text-muted">لا يوجد</span>
-    <!-- @endif -->
-</td>
+                                <td>
+                                    @if($student->image)
+                                        @php
+                                            $extension = pathinfo($student->image, PATHINFO_EXTENSION);
+                                        @endphp
+
+                                        @if(in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'webp']))
+                                            <a href="{{ asset('storage/' . $student->image) }}" target="_blank">
+                                                <img src="{{ asset('storage/' . $student->image) }}" alt="صورة الطالب" class="avatar-img">
+                                            </a>
+                                        @elseif(strtolower($extension) === 'pdf')
+                                            <a href="{{ asset('storage/' . $student->image) }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                                <i class="fa-solid fa-file-pdf me-1"></i> PDF
+                                            </a>
+                                        @else
+                                            <a href="{{ asset('storage/' . $student->image) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fa-solid fa-paperclip me-1"></i> عرض
+                                            </a>
+                                        @endif
+                                    @else
+                                        <span class="badge bg-light text-muted border">لا يوجد</span>
+                                    @endif
+                                </td>
 
                                 <td class="fw-bold text-dark">{{ $student->name }}</td>
                                 <td>{{ $student->email }}</td>
@@ -103,7 +118,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if($student->status == 'active' || $student->is_active ?? true)
+                                    @if(($student->status ?? 'active') == 'active')
                                         <span class="badge bg-success p-2">نشط</span>
                                     @else
                                         <span class="badge bg-secondary p-2">غير نشط</span>
@@ -135,6 +150,13 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- الترقيم الصفحي Pagination -->
+            @if(method_exists($students, 'hasPages') && $students->hasPages())
+                <div class="mt-3 d-flex justify-content-center">
+                    {{ $students->links() }}
+                </div>
+            @endif
         </div>
     </div>
 
