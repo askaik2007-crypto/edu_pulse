@@ -132,7 +132,7 @@
                 <button type="button" id="sidebarCollapse" class="btn btn-light d-lg-none">
                     <i class="fa-solid fa-bars"></i>
                 </button>
-                <h5 class="fw-bold m-0 text-dark">مرحباً بك، {{ $teacher->name }}</h5>
+                <h5 class="fw-bold m-0 text-dark">مرحباً بك، {{ auth()->user()->name ?? 'المدرس' }}</h5>
             </div>
             
             <div class="d-flex align-items-center gap-3">
